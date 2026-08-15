@@ -890,6 +890,8 @@ h1 em{font-style:normal;color:var(--fuego)}
 
     <div class="bloque">
       <p class="rotulo">Capas</p>
+      <label class="capa"><input type="checkbox" id="kBase" checked>
+        <span class="muestra"><i class="ln" style="height:8px;background:linear-gradient(90deg,#26323c,#4a5a66)"></i></span>Mapa detallado (lagos, carreteras, ciudades)</label>
       <label class="capa"><input type="checkbox" id="kB0" checked>
         <span class="muestra"><i class="pt" style="width:7px;height:7px;background:var(--b4)"></i></span>Sismos M 4.0–4.9</label>
       <label class="capa"><input type="checkbox" id="kB1" checked>
@@ -962,8 +964,13 @@ const mapa = L.map('mapa',{
   worldCopyJump:true, minZoom:1.6, maxZoom:12, zoomControl:true,
   attributionControl:true, preferCanvas:true, zoomSnap:.25
 }).setView([12,150],2.2);
+mapa.options.maxZoom=17;
 mapa.attributionControl.setPrefix(false).addAttribution(
-  'Sismos: <b>USGS ANSS ComCat</b> · Placas: PB2002 (Bird, 2003) · Falla: GEM GAF-DB (UCERF3/SCEC CFM) · Costas: Natural Earth');
+  'Sismos: <b>USGS ANSS ComCat</b> \u00b7 Placas: PB2002 (Bird, 2003) \u00b7 Fallas: GEM GAF-DB \u00b7 \u00a9 OpenStreetMap \u00b7 \u00a9 CARTO');
+
+const teselas = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  subdomains:'abcd', maxZoom:19
+});
 
 const capaTierra = L.layerGroup().addTo(mapa);
 CAPAS.land.forEach(r => L.polygon(r.map(p=>[p[1],p[0]]),{
@@ -983,10 +990,14 @@ CAPAS.ring.forEach(l => L.polyline(l.map(p=>[p[1],p[0]]),{
 }).addTo(capaFuego));
 capaFuego.addTo(mapa);
 
+const trazo = L.canvas({tolerance:14});   // margen de toque generoso para líneas delgadas
+
 const capaAndres = L.layerGroup();
 CAPAS.saf.forEach(s => L.polyline(s.c.map(p=>[p[1],p[0]]),{
-  color:'#d946ef',weight:3,opacity:.95,lineCap:'round'
-}).bindTooltip(s.n+' — límite transformante Pacífico / Norteamérica',{sticky:true}).addTo(capaAndres));
+  color:'#d946ef',weight:3,opacity:.95,lineCap:'round',renderer:trazo
+}).bindTooltip(s.n,{sticky:true})
+  .bindPopup('<div class="pop"><h3>'+s.n+'</h3><p class="desc">Segmento de la falla de San Andr\u00e9s \u2014 l\u00edmite transformante entre las placas del Pac\u00edfico y Norteamericana. Traza: GEM GAF-DB (UCERF3 / SCEC CFM).</p></div>')
+  .addTo(capaAndres));
 capaAndres.addTo(mapa);
 
 const BANDAS=[
@@ -998,8 +1009,12 @@ const BANDAS=[
 const bandaDe = m => m>=6.9?3 : m>=6?2 : m>=5?1 : 0;   // el rojo empieza exactamente en 6.9
 const capaRifts = L.layerGroup();
 CAPAS.rifts.forEach(s => L.polyline(s.c.map(p=>[p[1],p[0]]),{
-  color:'#8b5cf6',weight:2,opacity:.95,lineCap:'round'
-}).bindTooltip(s.n+(s.s?' \u2014 falla '+s.s.toLowerCase():'')+' \u00b7 sistema de rifts de Jalisco',{sticky:true}).addTo(capaRifts));
+  color:'#8b5cf6',weight:3,opacity:.95,lineCap:'round',renderer:trazo
+}).bindTooltip(s.n,{sticky:true})
+  .bindPopup('<div class="pop"><h3>'+s.n+'</h3><p class="desc">'
+    +(s.s?'Falla '+s.s.toLowerCase()+' del ':'Falla del ')
+    +'sistema de rifts de Jalisco (Tepic\u2013Zacoalco, Colima y Chapala). Traza: cat\u00e1logo Villegas / GEM GAF-DB.</p></div>')
+  .addTo(capaRifts));
 capaRifts.addTo(mapa);
 
 const capasBanda = BANDAS.map(()=>L.layerGroup().addTo(mapa));
@@ -1012,6 +1027,14 @@ capasBanda.forEach((c,i)=>alterna('kB'+i,c));
 alterna('kPlacas',capaPlacas);
 alterna('kFuego',capaFuego);  alterna('kAndres',capaAndres);
 alterna('kRifts',capaRifts);
+
+const kBase=document.getElementById('kBase');
+function aplicaBase(){
+  if(kBase.checked){ mapa.addLayer(teselas); mapa.removeLayer(capaTierra); }
+  else{ mapa.removeLayer(teselas); mapa.addLayer(capaTierra); }
+}
+kBase.addEventListener('change',aplicaBase);
+aplicaBase();
 
 /* ---------------- consulta al catálogo ---------------- */
 const INICIO = '2026-04-01T00:00:00';
