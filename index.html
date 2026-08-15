@@ -679,6 +679,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
   --placa:#93a3ae;       /* límites de placas: gris delgado */
   --fuego:#f5a524;       /* cinturón de fuego: ámbar grueso */
   --andres:#d946ef;      /* falla de San Andrés: magenta */
+  --b4:#4ade80;          /* M 4.0–4.9 */
+  --b5:#22d3ee;          /* M 5.0–5.9 */
   --azul:#3b82f6;        /* M 6.0–6.8 */
   --rojo:#ef4444;        /* M 6.9+ */
   --panel:#0b141c;
@@ -711,12 +713,11 @@ h1{
 }
 h1 em{font-style:normal;color:var(--fuego)}
 .periodo{font-family:var(--mono);font-size:11px;color:var(--tinta-2);margin-top:9px;line-height:1.5}
-.cifras{display:flex;gap:0;margin-top:14px;border:1px solid var(--linea);border-radius:3px;overflow:hidden}
-.cifra{flex:1;padding:8px 10px;background:#0e1a23}
+.cifras{display:grid;grid-template-columns:repeat(5,1fr);margin-top:14px;border:1px solid var(--linea);border-radius:3px;overflow:hidden}
+.cifra{padding:7px 8px;background:#0e1a23;min-width:0}
 .cifra+.cifra{border-left:1px solid var(--linea)}
-.cifra b{display:block;font-family:var(--cond);font-size:26px;font-weight:600;line-height:1}
-.cifra span{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-3)}
-.cifra.azul b{color:var(--azul)} .cifra.rojo b{color:var(--rojo)}
+.cifra b{display:block;font-family:var(--cond);font-size:20px;font-weight:600;line-height:1}
+.cifra span{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-3);white-space:nowrap}
 
 .bloque{padding:14px 20px;border-bottom:1px solid var(--linea)}
 .rotulo{
@@ -754,7 +755,10 @@ h1 em{font-style:normal;color:var(--fuego)}
 .fila .lugar{font-size:13px;line-height:1.25;color:var(--tinta);overflow-wrap:anywhere}
 .fila .meta{font-family:var(--mono);font-size:10px;color:var(--tinta-3);margin-top:2px}
 .fila .mag{font-family:var(--cond);font-size:19px;font-weight:600;line-height:1}
-.fila.a .mag{color:var(--azul)} .fila.r .mag{color:var(--rojo)}
+.vermas{display:block;width:calc(100% - 40px);margin:10px 20px;padding:9px;background:#16242f;
+  color:var(--tinta);border:1px solid var(--linea);border-radius:3px;cursor:pointer;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+.vermas:hover{background:#1c2d3a}
 .fila .barra{position:absolute;left:0;top:0;bottom:0;width:3px}
 .rep{
   display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;
@@ -789,7 +793,7 @@ h1 em{font-style:normal;color:var(--fuego)}
 .pop .cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .pop .n{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--tinta-3)}
 .pop .m{font-family:var(--cond);font-size:27px;font-weight:600;line-height:.9}
-.pop .m.a{color:var(--azul)} .pop .m.r{color:var(--rojo)}
+
 .pop h3{font-family:var(--cond);font-weight:600;font-size:17px;line-height:1.06;margin:6px 0 2px;text-transform:uppercase}
 .pop .desc{color:var(--tinta-2);font-size:12px;line-height:1.35;margin:0 0 9px}
 .pop dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-family:var(--mono);font-size:11px}
@@ -816,11 +820,7 @@ h1 em{font-style:normal;color:var(--fuego)}
 #franja .rotulo{margin:0 0 6px;pointer-events:none}
 #pista{position:relative;height:34px;pointer-events:auto}
 #pista .eje{position:absolute;left:0;right:0;bottom:12px;border-bottom:1px solid var(--linea)}
-#pista .tick{
-  position:absolute;bottom:12px;width:2px;border-radius:1px;cursor:pointer;
-  transform:translateX(-1px);opacity:.8
-}
-#pista .tick:hover,#pista .tick.activa{opacity:1;width:3px}
+#pista canvas{position:absolute;left:0;right:0;top:0;bottom:12px;width:100%;height:calc(100% - 12px);cursor:pointer}
 #pista .mes{position:absolute;bottom:0;font-family:var(--mono);font-size:9px;color:var(--tinta-3);transform:translateX(-50%)}
 
 /* estados */
@@ -877,19 +877,27 @@ h1 em{font-style:normal;color:var(--fuego)}
     <button id="tirador" aria-expanded="true">Ocultar</button>
     <header>
       <p class="eyebrow">Catálogo ANSS · USGS</p>
-      <h1>Sismos de magnitud <em>6.0 o mayor</em></h1>
+      <h1>Sismos de magnitud <em>4.0 o mayor</em></h1>
       <p class="periodo" id="periodo">Consultando el catálogo…</p>
       <div class="cifras">
         <div class="cifra"><b id="cTotal">—</b><span>Total</span></div>
-        <div class="cifra azul"><b id="cAzul">—</b><span>6.0–6.8</span></div>
-        <div class="cifra rojo"><b id="cRojo">—</b><span>6.9+</span></div>
+        <div class="cifra"><b id="c0" style="color:var(--b4)">—</b><span>4.0–4.9</span></div>
+        <div class="cifra"><b id="c1" style="color:var(--b5)">—</b><span>5.0–5.9</span></div>
+        <div class="cifra"><b id="c2" style="color:var(--azul)">—</b><span>6.0–6.8</span></div>
+        <div class="cifra"><b id="c3" style="color:var(--rojo)">—</b><span>6.9+</span></div>
       </div>
     </header>
 
     <div class="bloque">
       <p class="rotulo">Capas</p>
-      <label class="capa"><input type="checkbox" id="kSismos" checked>
-        <span class="muestra"><i class="pt" style="width:11px;height:11px;background:var(--azul);box-shadow:5px 0 0 -1px var(--rojo)"></i></span>Sismos</label>
+      <label class="capa"><input type="checkbox" id="kB0" checked>
+        <span class="muestra"><i class="pt" style="width:7px;height:7px;background:var(--b4)"></i></span>Sismos M 4.0–4.9</label>
+      <label class="capa"><input type="checkbox" id="kB1" checked>
+        <span class="muestra"><i class="pt" style="width:9px;height:9px;background:var(--b5)"></i></span>Sismos M 5.0–5.9</label>
+      <label class="capa"><input type="checkbox" id="kB2" checked>
+        <span class="muestra"><i class="pt" style="width:11px;height:11px;background:var(--azul)"></i></span>Sismos M 6.0–6.8</label>
+      <label class="capa"><input type="checkbox" id="kB3" checked>
+        <span class="muestra"><i class="pt" style="width:13px;height:13px;background:var(--rojo)"></i></span>Sismos M 6.9+</label>
       <label class="capa"><input type="checkbox" id="kPlacas" checked>
         <span class="muestra"><i class="ln" style="height:1px;background:var(--placa)"></i></span>Límites de placas</label>
       <label class="capa"><input type="checkbox" id="kFuego" checked>
@@ -903,9 +911,9 @@ h1 em{font-style:normal;color:var(--fuego)}
       <div id="lista"></div>
       <div class="notas">
         <p><b>Fuente.</b> ANSS Comprehensive Earthquake Catalog (ComCat) del USGS, consultado en vivo desde el navegador. Las magnitudes son las revisadas más recientes del USGS y <b>pueden corregirse después</b>: un mismo evento puede cambiar de magnitud, profundidad o ubicación al reprocesarse.</p>
-        <p><b>Réplicas.</b> El catálogo no publica una bandera de réplica. Los eventos marcados <span class="rep">réplica?</span> se identifican aquí con las ventanas espacio-temporales de Gardner y Knopoff (1974) respecto a un sismo mayor previo. Es un cálculo propio, no una clasificación del USGS, y se conserva cada evento como registro separado.</p>
+        <p><b>Réplicas.</b> El catálogo no publica una bandera de réplica. Los eventos marcados <span class="rep">réplica?</span> se identifican aquí con las ventanas espacio-temporales de Gardner y Knopoff (1974) respecto a un sismo previo de magnitud igual o mayor (considerando sismos principales de M 5.0 en adelante). Es un cálculo propio, no una clasificación del USGS, y se conserva cada evento como registro separado.</p>
         <p><b>Límites.</b> Que dos sismos ocurran cerca en tiempo o espacio no implica que estén conectados. Este mapa documenta lo que ya ocurrió: <b>no predice sismos</b> ni sirve para estimar dónde ocurrirá el siguiente.</p>
-        <p><b>Ausencia de puntos.</b> Una región sin marcas solo significa que ahí no hubo eventos de magnitud 6.0 o mayor en el periodo consultado. No significa que carezca de actividad sísmica: casi toda la sismicidad del planeta ocurre por debajo de ese umbral.</p>
+        <p><b>Ausencia de puntos.</b> Una región sin marcas solo significa que ahí no hubo eventos de magnitud 4.0 o mayor en el periodo consultado. No significa que carezca de actividad sísmica: la gran mayoría de la sismicidad del planeta ocurre por debajo de ese umbral, y en zonas con pocas estaciones el catálogo global del USGS puede no registrar todos los M 4.0–4.9.</p>
         <p><b>Capas geológicas.</b> Límites de placas: modelo digital PB2002 de Peter Bird (2003). Cinturón de Fuego: franja aproximada trazada con los segmentos de subducción de PB2002 que rodean el Pacífico; es una franja, no una falla única. Falla de San Andrés: traza publicada en la GEM Global Active Fault Database (UCERF3 / SCEC Community Fault Model), parte del límite transformante entre las placas del Pacífico y Norteamericana.</p>
       </div>
     </div>
@@ -915,7 +923,9 @@ h1 em{font-style:normal;color:var(--fuego)}
     <div id="mapa"></div>
     <div id="leyenda">
       <p class="rotulo">Leyenda</p>
-      <div class="ll"><i class="pt" style="width:9px;height:9px;background:var(--azul)"></i>M 6.0 – 6.8</div>
+      <div class="ll"><i class="pt" style="width:7px;height:7px;background:var(--b4)"></i>M 4.0 – 4.9</div>
+      <div class="ll"><i class="pt" style="width:9px;height:9px;background:var(--b5)"></i>M 5.0 – 5.9</div>
+      <div class="ll"><i class="pt" style="width:11px;height:11px;background:var(--azul)"></i>M 6.0 – 6.8</div>
       <div class="ll"><i class="pt" style="width:13px;height:13px;background:var(--rojo)"></i>M 6.9 o mayor</div>
       <div class="ll"><i class="ln" style="height:1px;background:var(--placa)"></i>Límites de placas</div>
       <div class="ll"><i class="ln" style="height:6px;background:var(--fuego);opacity:.55"></i>Cinturón de Fuego</div>
@@ -923,12 +933,12 @@ h1 em{font-style:normal;color:var(--fuego)}
     </div>
     <div id="franja">
       <p class="rotulo">Línea de tiempo del periodo</p>
-      <div id="pista"><div class="eje"></div></div>
+      <div id="pista"><div class="eje"></div><canvas id="cvTiempo"></canvas></div>
     </div>
     <div id="estado"><div class="caja">
       <div class="pulso"></div>
       <h2>Consultando el USGS</h2>
-      <p>Descargando todos los eventos de magnitud 6.0 o mayor registrados desde el 1 de abril de 2026.</p>
+      <p>Descargando todos los eventos de magnitud 4.0 o mayor registrados desde el 1 de abril de 2026. Son varios miles: puede tardar unos segundos.</p>
     </div></div>
   </div>
 </div>
@@ -976,13 +986,21 @@ CAPAS.saf.forEach(s => L.polyline(s.c.map(p=>[p[1],p[0]]),{
 }).bindTooltip(s.n+' — límite transformante Pacífico / Norteamérica',{sticky:true}).addTo(capaAndres));
 capaAndres.addTo(mapa);
 
-const capaSismos = L.layerGroup().addTo(mapa);
+const BANDAS=[
+  {t:'4.0\u20134.9', c:'#4ade80', min:4.0},
+  {t:'5.0\u20135.9', c:'#22d3ee', min:5.0},
+  {t:'6.0\u20136.8', c:'#3b82f6', min:6.0},
+  {t:'6.9+',          c:'#ef4444', min:6.9}
+];
+const bandaDe = m => m>=6.9?3 : m>=6?2 : m>=5?1 : 0;   // el rojo empieza exactamente en 6.9
+const capasBanda = BANDAS.map(()=>L.layerGroup().addTo(mapa));
 
 const alterna=(id,capa)=>{
   const c=document.getElementById(id);
-  c.addEventListener('change',()=>c.checked?mapa.addLayer(capa):mapa.removeLayer(capa));
+  c.addEventListener('change',()=>{ c.checked?mapa.addLayer(capa):mapa.removeLayer(capa); });
 };
-alterna('kSismos',capaSismos); alterna('kPlacas',capaPlacas);
+capasBanda.forEach((c,i)=>alterna('kB'+i,c));
+alterna('kPlacas',capaPlacas);
 alterna('kFuego',capaFuego);  alterna('kAndres',capaAndres);
 
 /* ---------------- consulta al catálogo ---------------- */
@@ -990,13 +1008,12 @@ const INICIO = '2026-04-01T00:00:00';
 const FIN    = new Date().toISOString().slice(0,19);
 const BASE   = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 const URL    = BASE+'?format=geojson&starttime='+INICIO+'&endtime='+FIN
-             + '&minmagnitude=6&orderby=time-asc&limit=20000';
+             + '&minmagnitude=4&eventtype=earthquake&orderby=time-asc&limit=20000';
 
 const fmtF = t => new Date(t).toISOString().slice(0,10);
 const fmtH = t => new Date(t).toISOString().slice(11,19)+' UTC';
 const region = p => { const i=(p||'').lastIndexOf(', '); return i<0 ? (p||'—') : p.slice(i+2); };
-const radio = m => 4.4 + (m-6)*2.4;
-const rojo = m => m>=6.9;
+const radio = m => 2.8 + (m-4)*1.35;
 
 /* ventanas de Gardner y Knopoff (1974) para señalar posibles réplicas */
 const ventanaKm  = m => Math.pow(10, 0.1238*m + 0.983);
@@ -1018,12 +1035,12 @@ function falla(msg,detalle){
 }
 
 const corte=new AbortController();
-setTimeout(()=>corte.abort('timeout'),20000);
+setTimeout(()=>corte.abort('timeout'),45000);
 fetch(URL,{cache:'no-store',signal:corte.signal})
   .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
   .then(procesa)
-  .catch(e => falla('No se pudo leer el catálogo',
-    'No hubo respuesta del servicio del USGS en 20 segundos ('+(e.message||e)+'). Los visores integrados (la vista previa de la app Archivos o de Claude) bloquean las conexiones a internet: abre este archivo en Safari o Chrome, o súbelo a un hosting y ábrelo por URL. El mapa no muestra datos aproximados ni de otra fuente. La consulta directa es:'));
+  .catch(e => falla('No se pudo leer el cat\u00e1logo',
+    'No hubo respuesta completa del servicio del USGS en 45 segundos ('+(e.message||e)+'). Los visores integrados (vista previa de Archivos o de la app de Claude) bloquean internet: abre esta p\u00e1gina en Safari o Chrome. El mapa no muestra datos aproximados ni de otra fuente. La consulta directa es:'));
 
 function procesa(geo){
   /* --- control de calidad --- */
@@ -1031,7 +1048,7 @@ function procesa(geo){
   const crudos=(geo.features||[]).filter(f=>{
     const p=f.properties||{}, g=f.geometry||{};
     if(!g.coordinates || p.mag==null) return false;
-    if(p.mag < 6) return false;                       // umbral exacto
+    if(p.mag < 4) return false;                       // umbral exacto
     if(vistos.has(f.id)){ duplicados++; return false; } // sin registros duplicados
     vistos.add(f.id); return true;
   });
@@ -1044,76 +1061,77 @@ function procesa(geo){
              estado:p.status, tsunami:p.tsunami };
   }).sort((a,b)=>a.t-b.t);
 
-  /* posibles réplicas: sismo mayor previo dentro de la ventana espacio-temporal */
-  EVENTOS.forEach((e,i)=>{
+  /* posibles réplicas: sismo principal previo (M>=5) dentro de la ventana espacio-temporal */
+  EVENTOS.forEach((e,i)=>e.n=i+1);
+  const principales = EVENTOS.filter(m=>m.mag>=5);
+  EVENTOS.forEach(e=>{
     e.replica=null;
-    for(let j=i-1;j>=0;j--){
-      const m=EVENTOS[j];
-      if(m.mag < e.mag) continue;
+    for(let j=principales.length-1;j>=0;j--){
+      const m=principales[j];
+      if(m.t >= e.t || m.mag < e.mag) continue;
       const dias=(e.t-m.t)/86400000;
       if(dias > ventanaDia(m.mag)) continue;
       if(distKm([m.lat,m.lon],[e.lat,e.lon]) <= ventanaKm(m.mag)){ e.replica=m; break; }
     }
   });
-  EVENTOS.forEach((e,i)=>e.n=i+1);
 
-  const nRojo = EVENTOS.filter(e=>rojo(e.mag)).length;
   document.getElementById('cTotal').textContent = EVENTOS.length;
-  document.getElementById('cAzul').textContent  = EVENTOS.length-nRojo;
-  document.getElementById('cRojo').textContent  = nRojo;
+  const porBanda=[0,0,0,0];
+  EVENTOS.forEach(e=>porBanda[bandaDe(e.mag)]++);
+  porBanda.forEach((n,i)=>document.getElementById('c'+i).textContent=n);
 
   const cuenta = (geo.metadata && geo.metadata.count!=null) ? geo.metadata.count : EVENTOS.length;
-  const descartados = cuenta - EVENTOS.length;
-  let nota;
-  if(descartados===0) nota = 'El USGS devolvió '+cuenta+' eventos y se muestran los '+EVENTOS.length+': la cifra coincide con el catálogo.';
-  else nota = 'El USGS devolvió '+cuenta+' eventos; se muestran '+EVENTOS.length+' ('+duplicados+' duplicados y '
-            +(descartados-duplicados)+' registros sin magnitud o sin coordenadas).';
+  const cuadra = cuenta===EVENTOS.length;
   document.getElementById('periodo').innerHTML =
-    '1 abr 2026 → '+FIN.slice(0,10)+' (UTC)<br>'+nota;
+    '1 abr 2026 → '+FIN.slice(0,10)+' (UTC)<br>'+
+    'El USGS devolvió '+cuenta+' eventos; se muestran '+EVENTOS.length+
+    (cuadra ? ' — coinciden.' : ' tras descartar '+duplicados+' duplicados.');
 
   dibuja(); pinta(); franja();
   document.getElementById('estado').remove();
-  if(EVENTOS.length) mapa.fitBounds(L.latLngBounds(EVENTOS.map(e=>[e.lat,e.lon])).pad(.06),{maxZoom:4});
+  if(EVENTOS.length) mapa.fitBounds(L.latLngBounds(EVENTOS.map(e=>[e.lat,e.lon])).pad(.03),{maxZoom:3,animate:false});
 }
 
 /* ---------------- puntos ---------------- */
 function dibuja(){
   const orden=[...EVENTOS].sort((a,b)=>b.mag-a.mag);   // los chicos quedan encima
   orden.forEach(e=>{
-    const col = rojo(e.mag) ? '#ef4444' : '#3b82f6';
+    const b = bandaDe(e.mag), col = BANDAS[b].c;
     const m = L.circleMarker([e.lat,e.lon],{
-      radius:radio(e.mag), color:col, weight:1.4, opacity:.95,
-      fillColor:col, fillOpacity:.34, bubblingMouseEvents:false
+      radius:radio(e.mag), color:col, weight:1.2, opacity:.9,
+      fillColor:col, fillOpacity:.32, bubblingMouseEvents:false
     });
     m.evento=e; e.marca=m;
-    m.bindTooltip('M '+e.mag.toFixed(1)+' · '+region(e.lugar),{direction:'top',offset:[0,-4]});
+    m.bindTooltip('M '+e.mag.toFixed(1)+' \u00b7 '+region(e.lugar),{direction:'top',offset:[0,-4]});
     m.on('click',()=>abre(e));
-    m.addTo(capaSismos); MARCAS.push(m);
+    m.addTo(capasBanda[b]); MARCAS.push(m);
   });
 }
 
 /* al hacer clic se listan también los eventos que quedan encimados */
 function abre(e){
   const p = mapa.latLngToLayerPoint([e.lat,e.lon]);
-  const cerca = EVENTOS.filter(o=>{
+  const visibles = capasBanda.map(c=>mapa.hasLayer(c));
+  let cerca = EVENTOS.filter(o=>{
     if(o===e) return true;
+    if(!visibles[bandaDe(o.mag)]) return false;
     const q=mapa.latLngToLayerPoint([o.lat,o.lon]);
     return Math.hypot(q.x-p.x,q.y-p.y) <= Math.max(radio(e.mag),radio(o.mag))+3;
-  }).sort((a,b)=>a.n-b.n);
+  }).sort((a,b)=>b.mag-a.mag);
+  let nota='';
+  if(cerca.length>6){ nota='<div class="solapados">'+cerca.length+' eventos superpuestos \u00b7 se muestran los 6 mayores; acerca el mapa para separarlos</div>'; cerca=cerca.slice(0,6); }
+  else if(cerca.length>1){ nota='<div class="solapados">'+cerca.length+' eventos superpuestos aqu\u00ed</div>'; }
 
-  const html = (cerca.length>1
-      ? '<div class="solapados">'+cerca.length+' eventos superpuestos aquí</div>' : '')
-    + cerca.map(ficha).join('');
+  const html = nota + cerca.map(ficha).join('');
   L.popup({maxWidth:262,autoPanPadding:[30,90]})
     .setLatLng([e.lat,e.lon]).setContent(html).openOn(mapa);
   marcaFila(e);
 }
 
 function ficha(e){
-  const cl = rojo(e.mag)?'r':'a';
   return '<div class="pop">'
-    + '<div class="cab"><span class="n">N.º '+e.n+'</span>'
-    + '<span class="m '+cl+'">M '+e.mag.toFixed(1)+'</span></div>'
+    + '<div class="cab"><span class="n">N.\u00ba '+e.n+'</span>'
+    + '<span class="m" style="color:'+BANDAS[bandaDe(e.mag)].c+'">M '+e.mag.toFixed(1)+'</span></div>'
     + '<h3>'+region(e.lugar)+'</h3>'
     + '<p class="desc">'+e.lugar+'</p>'
     + '<dl>'
@@ -1132,60 +1150,100 @@ function ficha(e){
     + '</div>';
 }
 
-/* ---------------- catálogo lateral ---------------- */
+/* ---------------- catálogo lateral (por bloques, más recientes primero) ---------------- */
+const BLOQUE=250;
+let ORDEN_LISTA=[], pintados=0;
+function filaHTML(e){
+  const col=BANDAS[bandaDe(e.mag)].c;
+  return '<div class="fila" data-n="'+e.n+'">'
+    + '<span class="barra" style="background:'+col+'"></span>'
+    + '<span class="num">'+String(e.n).padStart(4,'0')+'</span>'
+    + '<span><span class="lugar">'+region(e.lugar)
+    + (e.replica?'<span class="rep">r\u00e9plica?</span>':'')+'</span>'
+    + '<span class="meta">'+fmtF(e.t)+' \u00b7 '+fmtH(e.t)
+    + ' \u00b7 '+(e.prof==null?'prof. s/d':e.prof.toFixed(0)+' km')+'</span></span>'
+    + '<span class="mag" style="color:'+col+'">'+e.mag.toFixed(1)+'</span></div>';
+}
 function pinta(){
+  ORDEN_LISTA=[...EVENTOS].reverse();
+  pintados=0;
   const cont=document.getElementById('lista');
-  cont.innerHTML = EVENTOS.map(e=>{
-    const cl=rojo(e.mag)?'r':'a', col=rojo(e.mag)?'#ef4444':'#3b82f6';
-    return '<div class="fila '+cl+'" data-n="'+e.n+'">'
-      + '<span class="barra" style="background:'+col+'"></span>'
-      + '<span class="num">'+String(e.n).padStart(3,'0')+'</span>'
-      + '<span><span class="lugar">'+region(e.lugar)
-      + (e.replica?'<span class="rep">réplica?</span>':'')+'</span>'
-      + '<span class="meta">'+fmtF(e.t)+' · '+fmtH(e.t)
-      + ' · '+(e.prof==null?'prof. s/d':e.prof.toFixed(0)+' km')+'</span></span>'
-      + '<span class="mag">'+e.mag.toFixed(1)+'</span></div>';
-  }).join('');
-  cont.querySelectorAll('.fila').forEach(f=>{
-    f.addEventListener('click',()=>{
-      const e=EVENTOS[+f.dataset.n-1];
-      mapa.flyTo([e.lat,e.lon],Math.max(mapa.getZoom(),4),{duration:.6});
-      abre(e);
-    });
+  cont.innerHTML='';
+  cont.addEventListener('click',ev=>{
+    const f=ev.target.closest('.fila'); if(!f) return;
+    const e=EVENTOS[+f.dataset.n-1];
+    mapa.flyTo([e.lat,e.lon],Math.max(mapa.getZoom(),4),{duration:.6});
+    abre(e);
   });
+  masFilas();
+}
+function masFilas(){
+  const cont=document.getElementById('lista');
+  const viejo=document.getElementById('vermas'); if(viejo) viejo.remove();
+  const fin=Math.min(ORDEN_LISTA.length,pintados+BLOQUE);
+  let html='';
+  for(let i=pintados;i<fin;i++) html+=filaHTML(ORDEN_LISTA[i]);
+  cont.insertAdjacentHTML('beforeend',html);
+  pintados=fin;
+  if(pintados<ORDEN_LISTA.length){
+    cont.insertAdjacentHTML('beforeend',
+      '<button id="vermas" class="vermas">Mostrar '+Math.min(BLOQUE,ORDEN_LISTA.length-pintados)
+      +' m\u00e1s ('+(ORDEN_LISTA.length-pintados)+' restantes)</button>');
+    document.getElementById('vermas').addEventListener('click',masFilas);
+  }
 }
 function marcaFila(e){
-  document.querySelectorAll('.fila.activa,.tick.activa').forEach(x=>x.classList.remove('activa'));
+  document.querySelectorAll('.fila.activa').forEach(x=>x.classList.remove('activa'));
   const f=document.querySelector('.fila[data-n="'+e.n+'"]');
   if(f){ f.classList.add('activa'); f.scrollIntoView({block:'nearest'}); }
-  const t=document.querySelector('.tick[data-n="'+e.n+'"]');
-  if(t) t.classList.add('activa');
 }
 
-/* ---------------- franja temporal ---------------- */
+/* ---------------- franja temporal (canvas: miles de marcas sin costo de DOM) ---------------- */
 function franja(){
   if(!EVENTOS.length) return;
   const pista=document.getElementById('pista');
+  const cv=document.getElementById('cvTiempo');
   const t0=Date.parse(INICIO+'Z'), t1=Date.parse(FIN+'Z');
-  const x = t => ((t-t0)/(t1-t0))*100;
 
-  let html='<div class="eje"></div>';
+  pista.querySelectorAll('.mes').forEach(m=>m.remove());
   for(let d=new Date(t0); d<=t1; d.setUTCMonth(d.getUTCMonth()+1)){
-    const p=x(d.getTime()); if(p<0||p>100) continue;
-    html += '<span class="mes" style="left:'+p+'%">'
-         + d.toLocaleDateString('es-MX',{month:'short',timeZone:'UTC'})+'</span>';
+    const p=((d.getTime()-t0)/(t1-t0))*100; if(p<0||p>100) continue;
+    pista.insertAdjacentHTML('beforeend','<span class="mes" style="left:'+p+'%">'
+      + d.toLocaleDateString('es-MX',{month:'short',timeZone:'UTC'})+'</span>');
   }
-  EVENTOS.forEach(e=>{
-    const h = 5 + (e.mag-6)*7.5;
-    html += '<span class="tick" data-n="'+e.n+'" title="M '+e.mag.toFixed(1)+' · '+fmtF(e.t)+'" '
-         + 'style="left:'+x(e.t)+'%;height:'+h+'px;background:'+(rojo(e.mag)?'#ef4444':'#3b82f6')+'"></span>';
-  });
-  pista.innerHTML=html;
-  pista.querySelectorAll('.tick').forEach(t=>{
-    t.addEventListener('click',()=>{
-      const e=EVENTOS[+t.dataset.n-1];
-      mapa.flyTo([e.lat,e.lon],Math.max(mapa.getZoom(),4),{duration:.6}); abre(e);
+
+  function dibujaCv(){
+    const dpr=window.devicePixelRatio||1;
+    const w=cv.clientWidth, alto=cv.clientHeight;
+    cv.width=w*dpr; cv.height=alto*dpr;
+    const g=cv.getContext('2d'); g.scale(dpr,dpr); g.clearRect(0,0,w,alto);
+    // primero las bandas bajas, encima las altas para que los grandes no se pierdan
+    [0,1,2,3].forEach(b=>{
+      g.fillStyle=BANDAS[b].c; g.globalAlpha = b<2 ? .45 : .9;
+      EVENTOS.forEach(e=>{
+        if(bandaDe(e.mag)!==b) return;
+        const px=((e.t-t0)/(t1-t0))*w;
+        const hh=3+(e.mag-4)*3.2;
+        g.fillRect(px-.5,alto-hh,b>=2?2:1,hh);
+      });
     });
+    g.globalAlpha=1;
+  }
+  dibujaCv();
+  window.addEventListener('resize',dibujaCv);
+
+  cv.addEventListener('click',ev=>{
+    const r=cv.getBoundingClientRect();
+    const t = t0 + ((ev.clientX-r.left)/r.width)*(t1-t0);
+    const visibles = capasBanda.map(c=>mapa.hasLayer(c));
+    let mejor=null, dMin=Infinity;
+    EVENTOS.forEach(e=>{
+      if(!visibles[bandaDe(e.mag)]) return;
+      // favorece magnitudes grandes cuando hay muchos eventos cercanos en el tiempo
+      const d=Math.abs(e.t-t)/(1+(e.mag-4));
+      if(d<dMin){ dMin=d; mejor=e; }
+    });
+    if(mejor){ mapa.flyTo([mejor.lat,mejor.lon],Math.max(mapa.getZoom(),4),{duration:.6}); abre(mejor); }
   });
 }
 
